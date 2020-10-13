@@ -28,5 +28,5 @@ def login():
     return jsonify(results) 
 
 
-if __name__ == "__main__":
-    app.run(port=6789,debug=True)
+if __name__ == '__main__':
+    app.run(debug=True, use_reloader=True)  
