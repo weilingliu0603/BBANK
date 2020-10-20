@@ -208,12 +208,15 @@ def pay_cc():
         return jsonify(results)         
     else:
         results = [{'status': 'success', 'message': 'if any'}]
-        connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (balance - AmountPaid, AccountNum,)).commit()
+        connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (balance - AmountPaid, AccountNum,))
+        connection.commit()
         newamount = AmountDue + AmountPaid
-        connection.execute("UPDATE CreditCard SET AmountDue = ? WHERE CardNumber = ? ", (newamount, CardNumber,)).commit()
+        connection.execute("UPDATE CreditCard SET AmountDue = ? WHERE CardNumber = ? ", (newamount, CardNumber,))
+        connection.commit()
 
     connection.close()
     return jsonify(results) 
+
 
 #transfer funds
 @app.route("/transfer_funds") #set method to GET/POST
@@ -240,8 +243,10 @@ def transfer_funds():
         cursor = connection.execute("SELECT Balance FROM Account WHERE AccountNumber = ? ", (Receiver,)).fetchall()
         receiver_balance = cursor[0][0]
     
-        connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (sender_balance - Amount, Sender,)).commit()
-        connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (receiver_balance + Amount, Receiver,)).commit()
+        connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (sender_balance - Amount, Sender,))
+        connection.commit()
+        connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (receiver_balance + Amount, Receiver,))
+        connection.commit()
 
     connection.close()
     return jsonify(results) 
