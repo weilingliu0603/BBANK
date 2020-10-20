@@ -183,9 +183,74 @@ def category_spending(Email):
                   
     return jsonify(dic)
        
+#pay credit card amount due
+@app.route("/pay_cc") #set method to GET/POST
+def pay_cc(): 
+##    data = flask.request.form
+##    CardNumber = data["CardNumber"]
+##    AccountNum = data["AccountNum"]
+##    AmountPaid = data["AmountPaid"]
+
+    CardNumber = 4335666755550000 #to be removed, for testing only
+    AccountNum = 123244500 #to be removed, for testing only
+    AmountPaid = 500 #to be removed, for testing only
+    
+    connection = sqlite3.connect("BBOOK.db")
+    cursor = connection.execute("SELECT Balance FROM Account WHERE AccountNumber = ? ", (AccountNum,)).fetchall()
+    balance = cursor[0][0]
+
+    cursor = connection.execute("SELECT AmountDue FROM CreditCard WHERE CardNumber = ? ", (CardNumber,)).fetchall()
+    AmountDue = cursor[0][0]
+    
+    if balance < AmountDue:
+        results = [{'status': 'fail', 'message': 'if any'}]
+        connection.close()
+        return jsonify(results)         
+    else:
+        results = [{'status': 'success', 'message': 'if any'}]
+        cursor = connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (balance - AmountPaid, AccountNum,)).fetchall()
+        connection.commit()
+        newamount = AmountDue + AmountPaid
+        cursor = connection.execute("UPDATE CreditCard SET AmountDue = ? WHERE CardNumber = ? ", (newamount, CardNumber,)).fetchall()
+        connection.commit()
+
+    connection.close()
+
+    return jsonify(results) 
 
 #transfer funds
+@app.route("/transfer_funds") #set method to GET/POST
+def transfer_funds(): 
+##    data = flask.request.form
+##    Sender = data["Account_Send"]
+##    Receiver = data["Accound_Receive"]
+##    Amount = data["Amount"]
 
+    Sender = 112244537 #to be removed, for testing only
+    Receiver = 123244500 #to be removed, for testing only
+    Amount = 500 #to be removed, for testing only
+    
+    connection = sqlite3.connect("BBOOK.db")
+    cursor = connection.execute("SELECT Balance FROM Account WHERE AccountNumber = ? ", (Sender,)).fetchall()
+    sender_balance = cursor[0][0]
+
+    if sender_balance < Amount:
+        results = [{'status': 'fail', 'message': 'if any'}]
+        connection.close()
+        return jsonify(results)         
+    else:
+        results = [{'status': 'success', 'message': 'if any'}]
+        cursor = connection.execute("SELECT Balance FROM Account WHERE AccountNumber = ? ", (Receiver,)).fetchall()
+        receiver_balance = cursor[0][0]
+    
+        cursor = connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (sender_balance - Amount, Sender,)).fetchall()
+        connection.commit()
+        cursor = connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (receiver_balance + Amount, Receiver,)).fetchall()
+        connection.commit()
+
+    connection.close()
+
+    return jsonify(results) 
 
 if __name__ == "__main__":
     app.run(port=6789,debug=True)
