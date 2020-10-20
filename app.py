@@ -32,14 +32,14 @@ def login():
 
 #customer summary
 @app.route("/customer_summary/<Email>")
-def customer(Email):
+def customer_summary(Email):
        connection = sqlite3.connect("BBOOK.db")
        cursor = connection.execute("SELECT CustomerID,Name FROM Customer WHERE Email = ? ", (Email,)).fetchall()
        CustomerID = cursor[0][0]
        Name = cursor[0][1]
-       cursor = connection.execute("SELECT SUM(Balance) FROM Account WHERE CustomerID = ? ", (CustomerID)).fetchall()
+       cursor = connection.execute("SELECT SUM(Balance) FROM Account WHERE CustomerID = ? ", (CustomerID,)).fetchall()
        Deposit = cursor[0][0]
-       cursor = connection.execute("SELECT SUM(AmountDue) FROM CreditCard WHERE CustomerID = ? ", (CustomerID)).fetchall()
+       cursor = connection.execute("SELECT SUM(AmountDue) FROM CreditCard WHERE CustomerID = ? ", (CustomerID,)).fetchall()
        Credit = cursor[0][0]
        connection.close()
        results = [{'CustomerID': CustomerID, 'Name': Name, 'Deposit': Deposit, 'Credit': Credit}]
