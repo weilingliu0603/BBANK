@@ -30,9 +30,9 @@ def login():
 
     return jsonify(results) 
 
-#customer details
+#customer summary
 @app.route("/customer_summary/<Email>")
-def customer(id):
+def customer(Email):
        connection = sqlite3.connect("BBOOK.db")
        cursor = connection.execute("SELECT CustomerID,Name FROM Customer WHERE Email = ? ", (Email,)).fetchall()
        CustomerID = cursor[0][0]
