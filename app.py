@@ -110,11 +110,74 @@ def card_info(CardNumber):
     return jsonify(dic)
 
 
-#pay credit card amount due
+#retrieve historical total monthly spending (credit cards)
+@app.route("/total_spending/<Email>")
+def total_spending(Email):
+    connection = sqlite3.connect("BBOOK.db")
+    cursor = connection.execute("SELECT CustomerID FROM Customer WHERE Email = ? ", (Email,)).fetchall()
 
-#retrieve total monthly spending (credit cards)
+    CustomerID = cursor[0][0]
 
-#retrieve monthly spending by category (credit cards)
+    cursor = connection.execute("SELECT CardNumber FROM CreditCard WHERE CustomerID = ? ", (CustomerID,)).fetchall()
+
+    creditcards = []
+    for record in cursor:
+           creditcards.append(record)
+
+    dic = {}
+
+    for card in creditcards:
+           if card not in dic:
+                  dic[card[0]] = {}
+
+           for card in dic:
+                  cursor = connection.execute("SELECT Amount, Month FROM CreditCardTransaction WHERE CardNumber = ? ", (card,)).fetchall()
+                  for record in cursor:
+                         if record[1] not in dic[card]:
+                                dic[card][record[1]] = record[0]
+                         else:
+                                dic[card][record[1]] += record[0]
+                  
+    return jsonify(dic)
+       
+
+#retrieve this month's spending by category (credit cards)
+@app.route("/category_spending/<Email>")
+def category_spending(Email):
+    today = dt.datetime.now()
+    month = today.month
+    months = ["Jan","Feb","Mar","April","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+
+    thismonth = months[month-1]
+    
+    
+    connection = sqlite3.connect("BBOOK.db")
+    cursor = connection.execute("SELECT CustomerID FROM Customer WHERE Email = ? ", (Email,)).fetchall()
+
+    CustomerID = cursor[0][0]
+
+    cursor = connection.execute("SELECT CardNumber FROM CreditCard WHERE CustomerID = ? ", (CustomerID,)).fetchall()
+
+    creditcards = []
+    for record in cursor:
+           creditcards.append(record)
+
+    dic = {}
+
+    for card in creditcards:
+           if card not in dic:
+                  dic[card[0]] = {}
+
+           for card in dic:
+                  cursor = connection.execute("SELECT Amount, Category FROM CreditCardTransaction WHERE CardNumber = ? AND Month = ?", (card, thismonth)).fetchall()
+                  for record in cursor:
+                         if record[1] not in dic[card]:
+                                dic[card][record[1]] = round(record[0],2)
+                         else:
+                                dic[card][record[1]] += round(record[0],2)
+                  
+    return jsonify(dic)
+       
 
 #transfer funds
 
