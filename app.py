@@ -208,14 +208,11 @@ def pay_cc():
         return jsonify(results)         
     else:
         results = [{'status': 'success', 'message': 'if any'}]
-        cursor = connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (balance - AmountPaid, AccountNum,)).fetchall()
-        connection.commit()
+        connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (balance - AmountPaid, AccountNum,)).commit()
         newamount = AmountDue + AmountPaid
-        cursor = connection.execute("UPDATE CreditCard SET AmountDue = ? WHERE CardNumber = ? ", (newamount, CardNumber,)).fetchall()
-        connection.commit()
+        connection.execute("UPDATE CreditCard SET AmountDue = ? WHERE CardNumber = ? ", (newamount, CardNumber,)).commit()
 
     connection.close()
-
     return jsonify(results) 
 
 #transfer funds
@@ -247,7 +244,6 @@ def transfer_funds():
         connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (receiver_balance + Amount, Receiver,)).commit()
 
     connection.close()
-
     return jsonify(results) 
 
 if __name__ == "__main__":
