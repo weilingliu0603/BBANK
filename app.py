@@ -30,10 +30,20 @@ def login():
 
     return jsonify(results) 
 
-#account details
-@app.route("/account")
-def account(): 
-       return "Hello World"
+#customer details
+@app.route("/customer_summary/<Email>")
+def customer(id):
+       connection = sqlite3.connect("BBOOK.db")
+       cursor = connection.execute("SELECT CustomerID,Name FROM Customer WHERE Email = ? ", (Email,)).fetchall()
+       CustomerID = cursor[0][0]
+       Name = cursor[0][1]
+       cursor = connection.execute("SELECT SUM(Balance) FROM Account WHERE CustomerID = ? ", (CustomerID)).fetchall()
+       Deposit = cursor[0][0]
+       cursor = connection.execute("SELECT SUM(AmountDue) FROM CreditCard WHERE CustomerID = ? ", (CustomerID)).fetchall()
+       Credit = cursor[0][0]
+       connection.close()
+       results = [{'CustomerID': CustomerID, 'Name': Name, 'Deposit': Deposit, 'Credit': Credit}]
+       return jsonify(results)
 
 #retrieve all saving accounts transactions
 @app.route("/accounts_transactions/<Email>")
