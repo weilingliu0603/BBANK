@@ -243,10 +243,8 @@ def transfer_funds():
         cursor = connection.execute("SELECT Balance FROM Account WHERE AccountNumber = ? ", (Receiver,)).fetchall()
         receiver_balance = cursor[0][0]
     
-        cursor = connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (sender_balance - Amount, Sender,)).fetchall()
-        connection.commit()
-        cursor = connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (receiver_balance + Amount, Receiver,)).fetchall()
-        connection.commit()
+        connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (sender_balance - Amount, Sender,)).commit()
+        connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (receiver_balance + Amount, Receiver,)).commit()
 
     connection.close()
 
