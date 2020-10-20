@@ -52,6 +52,16 @@ def accounts_transactions(Email):
     return jsonify(dic)
 
 #retrieve transactions of one saving account
+@app.route("/account_transactions/<AccountNumber>")
+def account_transactions(AccountNumber):
+    dic = {AccountNumber:[]}
+    connection = sqlite3.connect("BBOOK.db")
+
+    cursor = connection.execute("SELECT Date, Time, Amount, Description FROM AccountTransaction WHERE AccountNumber = ? ", (AccountNumber,)).fetchall()
+    for record in cursor:
+           dic[AccountNumber].append(record)
+    
+    return jsonify(dic)
 
 #retrieve all credit card transactions
 @app.route("/cards_transactions/<Email>")
@@ -87,6 +97,18 @@ def card_transactions(CardNumber):
     return jsonify(dic)
 
 #retrieve info of each credit card (incl amount due)
+@app.route("/card_info/<CardNumber>")
+def card_info(CardNumber):
+    connection = sqlite3.connect("BBOOK.db")
+
+    cursor = connection.execute("SELECT * FROM CreditCard WHERE CardNumber = ? ", (CardNumber,)).fetchall()
+    cursor1 = connection.execute("SELECT Name FROM Customer WHERE CustomerID = ? ", (cursor[0][5],)).fetchall()
+
+
+    dic = {"CardNumber":cursor[0][0], "Name":cursor1[0][0], "CardType":cursor[0][1], "ExpiryDate":cursor[0][3], "CardName":cursor[0][4], "AmountDue":cursor[0][6]}
+    
+    return jsonify(dic)
+
 
 #pay credit card amount due
 
