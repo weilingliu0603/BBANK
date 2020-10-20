@@ -30,10 +30,9 @@ def login():
 
     return jsonify(results) 
 
-#register user
-
+#account details
 @app.route("/account")
-def login(): 
+def account(): 
        return "Hello World"
 
 #retrieve all saving accounts transactions
