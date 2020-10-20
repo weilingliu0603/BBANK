@@ -9,6 +9,8 @@ app = flask.Flask(__name__)
 def index():
        return flask.render_template("index.html")
 
+#register user
+
 @app.route("/login", methods = ["POST"])
 def login(): 
     data = flask.request.form
@@ -28,7 +30,6 @@ def login():
 
     return jsonify(results) 
 
-#register user
 #retrieve all saving accounts transactions
 @app.route("/accounts_transactions/<Email>")
 def accounts_transactions(Email): 
@@ -48,7 +49,9 @@ def accounts_transactions(Email):
            for record in cursor:
                   dic[AccountNumber].append(record)
     
-    return jsonify(dic) 
+    return jsonify(dic)
+
+#retrieve transactions of one saving account
 
 #retrieve all credit card transactions
 @app.route("/cards_transactions/<Email>")
@@ -81,7 +84,17 @@ def card_transactions(CardNumber):
     for record in cursor:
            dic[CardNumber].append(record)
     
-    return jsonify(dic)    
+    return jsonify(dic)
+
+#retrieve info of each credit card (incl amount due)
+
+#pay credit card amount due
+
+#retrieve total monthly spending (credit cards)
+
+#retrieve monthly spending by category (credit cards)
+
+#transfer funds
 
 
 if __name__ == "__main__":
