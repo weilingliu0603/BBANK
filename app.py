@@ -10,6 +10,36 @@ def index():
        return flask.render_template("index.html")
 
 #register user
+@app.route("/registration") #set method to GET/POST
+def registration(): 
+##    data = flask.request.form
+##    
+##    Name = data["Name"]
+##    Email = data["Email"]
+##    Password = data["Password"]
+##    Mobile = data["Mobile"]
+
+    Name = "Liu Weiling"
+    Email = "liu@gmail.com"
+    Password = "liu123"
+    Mobile = "98361234"
+
+    connection = sqlite3.connect("BBOOK.db")
+    cursor = connection.execute("SELECT * FROM Customer WHERE Email = ? ", (Email,)).fetchall()
+    if len(cursor) > 0:
+        results = [{'status': 'fail', 'message': 'email has been registered'}]
+        connection.close()
+        return jsonify(results)        
+    else:
+        results = [{'status': 'success', 'message': 'if any'}]
+        cursor = connection.execute("SELECT seq FROM sqlite_sequence WHERE name = ? ", ("Customer",)).fetchall()
+        nextID = int(cursor[0][0]) + 1
+        
+        cursor = connection.execute("INSERT INTO Customer VALUES (?,?,?,?,?)", (Name, Email, Password, Mobile, str(nextID)))
+        connection.commit()
+        connection.close()
+
+        return jsonify(results)
 
 @app.route("/login", methods = ["POST"])
 def login(): 
