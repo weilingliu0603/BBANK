@@ -49,15 +49,15 @@ def login():
     Password = data["Password"]
     
     connection = sqlite3.connect("BBOOK.db")
-    cursor = connection.execute("SELECT * FROM Customer WHERE Email = ? AND Password = ?", (Email, Password)).fetchall()
-
+    cursor = connection.execute("SELECT CustomerID FROM Customer WHERE Email = ? AND Password = ?", (Email, Password)).fetchall()
+    CustomerID = cursor[0][0]
     connection.close()
     
     if len(cursor) == 1:
-        results = {'status': 'success', 'message': 'if any'}
+        results = {'CustomerID': CustomerID, 'status': 'success', 'message': 'if any'}
         
     else:
-        results = {'status': 'fail', 'message': 'if any'}
+        results = {'CustomerID''status': 'fail', 'message': 'if any'}
 
     return jsonify(results) 
 
@@ -65,17 +65,25 @@ def login():
 @app.route("/customer_info/<CustomerID>")
 def customer_info(CustomerID):
        connection = sqlite3.connect("BBOOK.db")
-       cursor = connection.execute("SELECT Name,Email,Mobile FROM Customer WHERE CustomerID = ? ", (CustomerID,)).fetchall()
+       cursor = connection.execute("SELECT Name,Email,Mobile,ProfilePic FROM Customer WHERE CustomerID = ? ", (CustomerID,)).fetchall()
        Name = cursor[0][0]
        Email = cursor[0][1]
        Mobile = cursor[0][2]
+       ProfilePic = cursor[0][3]
        cursor = connection.execute("SELECT SUM(Balance) FROM Account WHERE CustomerID = ? ", (CustomerID,)).fetchall()
        Deposit = cursor[0][0]
        cursor = connection.execute("SELECT SUM(AmountDue) FROM CreditCard WHERE CustomerID = ? ", (CustomerID,)).fetchall()
        Credit = cursor[0][0]
        connection.close()
-       results = {'CustomerID': CustomerID, 'Name': Name, 'Email':Email, 'Mobile':Mobile, 'Deposit': Deposit, 'Credit': Credit}
+       results = {'CustomerID': CustomerID, 'Name': Name, 'Email':Email, 'Mobile':Mobile, 'ProfilePic':ProfilePic, 'Deposit': Deposit, 'Credit': Credit}
        return results
+
+#quick payee list
+#@app.route("/customer_quickpay/<CustomerID>")
+#def customer_quickpay(CustomerID):
+#       connection = sqlite3.connect("BBOOK.db")
+#       cursor = connection.execute("SELECT CustomerID FROM QuickPay WHERE CustomerID = ? ", (CustomerID,)).fetchall()
+       
 
 #retrieve all saving accounts transactions
 @app.route("/accounts_transactions/<Email>")
