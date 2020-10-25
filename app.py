@@ -1,6 +1,7 @@
 import flask
 import sqlite3
 from flask import jsonify
+from flask import request
 import datetime as dt
 
 app = flask.Flask(__name__)
@@ -44,10 +45,14 @@ def registration():
 #login
 @app.route("/login", methods = ["POST"])
 def login(): 
-    data = flask.request.form
-    Email = data["Email"]
-    Password = data["Password"]
-    
+    #data = flask.request.form
+    #Email = data["Email"]
+    #Password = data["Password"]
+
+    req_data = request.get_json()
+    Email = req_data['Email']
+    Password = req_data['Password']
+
     connection = sqlite3.connect("BBOOK.db")
     cursor = connection.execute("SELECT CustomerID FROM Customer WHERE Email = ? AND Password = ?", (Email, Password)).fetchall()
     CustomerID = cursor[0][0]
