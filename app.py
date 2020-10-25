@@ -85,18 +85,18 @@ def customer_info(CustomerID):
        results = {'CreditCard': CreditCard, 'Bank': Bank, 'CustomerID': CustomerID, 'Name': Name, 'Email':Email, 'Mobile':Mobile, 'ProfilePic':ProfilePic, 'Deposit': Deposit, 'Credit': Credit}
        return results
 
-
 #Return Customer BankAccounts
 def customer_banks(CustomerID):
     connection = sqlite3.connect("BBOOK.db")
-    cursor = connection.execute("SELECT BankID,AccountType,AccountNumber,Balance FROM Account WHERE CustomerID = ? ", (CustomerID,)).fetchall()
+    cursor = connection.execute("SELECT BankID,AccountType,AccountNumber,Balance,BankName FROM Account INNER JOIN BANK ON Account.BankID = BANK.BankID WHERE CustomerID = ? ", (CustomerID,)).fetchall()
     Bank = []
     for record in cursor:
            BankID = record[0]
            AccountType = record[1]
            AccountNumber = record[2]
            Balance = record[3]
-           Bank.append({"BankID": BankID, "AccountType": AccountType, "AccountNumber": AccountNumber, "Balance": Balance})
+           BankName = record[4]
+           Bank.append({"BankID": BankID, "AccountType": AccountType, "AccountNumber": AccountNumber, "Balance": Balance, "BankName": BankName})
     return Bank
 
 #Return Customer CreditCards
@@ -115,10 +115,11 @@ def customer_creditcards(CustomerID):
            CreditCard.append({"CardID": CardID, "CardNumber": CardNumber, "CardType": CardType, "ExpiryDate": ExpiryDate, "CardName": CardName, "AmountDue": AmountDue, "BankName": BankName})
     return CreditCard
 
+#Transfer from Bank to Bank
+
+
 
 #def customer_creditcards():
-
-
 #quick payee list
 #@app.route("/customer_quickpay/<CustomerID>")
 #def customer_quickpay(CustomerID):
