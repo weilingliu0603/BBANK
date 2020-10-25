@@ -41,6 +41,7 @@ def registration():
 
         return jsonify(results)
 
+#login
 @app.route("/login", methods = ["POST"])
 def login(): 
     data = flask.request.form
@@ -53,27 +54,28 @@ def login():
     connection.close()
     
     if len(cursor) == 1:
-        results = [{'status': 'success', 'message': 'if any'}]
+        results = {'status': 'success', 'message': 'if any'}
         
     else:
-        results = [{'status': 'fail', 'message': 'if any'}]
+        results = {'status': 'fail', 'message': 'if any'}
 
     return jsonify(results) 
 
-#customer summary
-@app.route("/customer_summary/<Email>")
-def customer_summary(Email):
+#customer info
+@app.route("/customer_info/<CustomerID>")
+def customer_info(CustomerID):
        connection = sqlite3.connect("BBOOK.db")
-       cursor = connection.execute("SELECT CustomerID,Name FROM Customer WHERE Email = ? ", (Email,)).fetchall()
-       CustomerID = cursor[0][0]
-       Name = cursor[0][1]
+       cursor = connection.execute("SELECT Name,Email,Mobile FROM Customer WHERE CustomerID = ? ", (CustomerID,)).fetchall()
+       Name = cursor[0][0]
+       Email = cursor[0][1]
+       Mobile = cursor[0][2]
        cursor = connection.execute("SELECT SUM(Balance) FROM Account WHERE CustomerID = ? ", (CustomerID,)).fetchall()
        Deposit = cursor[0][0]
        cursor = connection.execute("SELECT SUM(AmountDue) FROM CreditCard WHERE CustomerID = ? ", (CustomerID,)).fetchall()
        Credit = cursor[0][0]
        connection.close()
-       results = [{'CustomerID': CustomerID, 'Name': Name, 'Deposit': Deposit, 'Credit': Credit}]
-       return jsonify(results)
+       results = {'CustomerID': CustomerID, 'Name': Name, 'Email':Email, 'Mobile':Mobile, 'Deposit': Deposit, 'Credit': Credit}
+       return results
 
 #retrieve all saving accounts transactions
 @app.route("/accounts_transactions/<Email>")
