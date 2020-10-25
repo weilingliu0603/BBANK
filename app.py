@@ -201,10 +201,11 @@ def list_quickpay(CustomerID):
 
 
 #Retrieve Transactions By CardNumber
-@app.route("/get_cardtransactions/<CardNumber>")
+#@app.route("/get_cardtransactions/<CardNumber>")
 def get_cardtransactions(CardNumber):
     connection = sqlite3.connect("BBOOK.db")
     cursor = connection.execute("SELECT Date, Time, Amount, Category FROM CreditCardTransaction WHERE CardNumber = ? ", (CardNumber,)).fetchall()
+    connection.close()
     transactions = []
     for record in cursor:
            Date = record[0]
@@ -212,9 +213,22 @@ def get_cardtransactions(CardNumber):
            Amount = record[2]
            Category = record[3]
            transactions.append({"Date":Date, "Time":Time, "Amount":Amount, "Category":Category})
-    
-    return jsonify(transactions)
-    
+    return transactions
+
+#Retrieve Credit Card Info including transactions
+@app.route("/get_cardinfo/<CardNumber>")
+def get_cardinfo(CardNumber):
+    connection = sqlite3.connect("BBOOK.db")
+    cursor = connection.execute("SELECT CardNumber,CardType,ExpiryDate,CardName,AmountDue,BankName FROM CreditCard INNER JOIN BANK ON CreditCard.BankID = BANK.BankID Where CardNumber = ? ", (CardNumber,)).fetchall()
+    connection.close()
+    CardNumber = cursor[0][0]
+    CardType = cursor[0][1]
+    ExpiryDate = cursor[0][2]
+    CardName = cursor[0][3]
+    AmountDue = cursor[0][4]
+    BankName = cursor[0][5]
+    dic = {"CardNumber":CardNumber, "CardType":CardType, "ExpiryDate":ExpiryDate, "CardName":CardName, "AmountDue":AmountDue, "BankName":BankName, "Transactions":get_cardtransactions(CardNumber)}
+    return dic
 
 #retrieve all saving accounts transactions
 @app.route("/accounts_transactions/<Email>")
