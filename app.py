@@ -184,12 +184,20 @@ def pay_creditcard():
     connection.close()
     return jsonify(results) 
 
-#def customer_creditcards():
-#quick payee list
-#@app.route("/customer_quickpay/<CustomerID>")
-#def customer_quickpay(CustomerID):
-#       connection = sqlite3.connect("BBOOK.db")
-#       cursor = connection.execute("SELECT CustomerID FROM QuickPay WHERE CustomerID = ? ", (CustomerID,)).fetchall()
+
+#Returns list of QuickPayees
+@app.route("/list_quickpay/<CustomerID>")
+def list_quickpay(CustomerID):
+       connection = sqlite3.connect("BBOOK.db")
+       cursor = connection.execute("SELECT Customer.Name, Customer.ProfilePic, X.AccountNumber FROM QuickPay INNER JOIN Customer ON QuickPay.PayeeID = Customer.CustomerID INNER JOIN (Select CustomerID, AccountNumber from Account Where AccountType='Savings' Group by CustomerID) as X ON QuickPay.PayeeID = X.CustomerID Where QuickPay.CustomerID = ? ", (CustomerID,)).fetchall()
+       connection.close()
+       quickPayee = []
+       for record in cursor:
+           Name = record[0]
+           ProfilePic = record[1]
+           AccountNumber = record[2]
+           quickPayee.append({"Name":Name, "ProfilePic":ProfilePic, "AccountNumber":AccountNumber})
+       return jsonify(quickPayee)
        
 
 #retrieve all saving accounts transactions
