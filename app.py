@@ -80,8 +80,44 @@ def customer_info(CustomerID):
        cursor = connection.execute("SELECT SUM(AmountDue) FROM CreditCard WHERE CustomerID = ? ", (CustomerID,)).fetchall()
        Credit = cursor[0][0]
        connection.close()
-       results = {'CustomerID': CustomerID, 'Name': Name, 'Email':Email, 'Mobile':Mobile, 'ProfilePic':ProfilePic, 'Deposit': Deposit, 'Credit': Credit}
+       Bank = customer_banks(CustomerID)
+       CreditCard = customer_creditcards(CustomerID)
+       results = {'CreditCard': CreditCard, 'Bank': Bank, 'CustomerID': CustomerID, 'Name': Name, 'Email':Email, 'Mobile':Mobile, 'ProfilePic':ProfilePic, 'Deposit': Deposit, 'Credit': Credit}
        return results
+
+
+#Return Customer BankAccounts
+def customer_banks(CustomerID):
+    connection = sqlite3.connect("BBOOK.db")
+    cursor = connection.execute("SELECT BankID,AccountType,AccountNumber,Balance FROM Account WHERE CustomerID = ? ", (CustomerID,)).fetchall()
+    Bank = []
+    for record in cursor:
+           BankID = record[0]
+           AccountType = record[1]
+           AccountNumber = record[2]
+           Balance = record[3]
+           Bank.append({"BankID": BankID, "AccountType": AccountType, "AccountNumber": AccountNumber, "Balance": Balance})
+    return Bank
+
+#Return Customer CreditCards
+def customer_creditcards(CustomerID):
+    connection = sqlite3.connect("BBOOK.db")
+    cursor = connection.execute("SELECT CardID,CardNumber,CardType,ExpiryDate,CardName,AmountDue,BankName FROM CreditCard INNER JOIN BANK ON CreditCard.BankID = BANK.BankID WHERE CustomerID = ? ", (CustomerID,)).fetchall()
+    CreditCard = []
+    for record in cursor:
+           CardID = record[0]
+           CardNumber = record[1]
+           CardType = record[2]
+           ExpiryDate = record[3]
+           CardName = record[4]
+           AmountDue = record[5]
+           BankName = record[6]
+           CreditCard.append({"CardID": CardID, "CardNumber": CardNumber, "CardType": CardType, "ExpiryDate": ExpiryDate, "CardName": CardName, "AmountDue": AmountDue, "BankName": BankName})
+    return CreditCard
+
+
+#def customer_creditcards():
+
 
 #quick payee list
 #@app.route("/customer_quickpay/<CustomerID>")
