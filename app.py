@@ -88,7 +88,7 @@ def customer_info(CustomerID):
 #Return Customer BankAccounts
 def customer_banks(CustomerID):
     connection = sqlite3.connect("BBOOK.db")
-    cursor = connection.execute("SELECT BankID,AccountType,AccountNumber,Balance,BankName FROM Account INNER JOIN BANK ON Account.BankID = BANK.BankID WHERE CustomerID = ? ", (CustomerID,)).fetchall()
+    cursor = connection.execute("SELECT Account.BankID,AccountType,AccountNumber,Balance,BankName FROM Account INNER JOIN BANK ON Account.BankID = BANK.BankID WHERE CustomerID = ? ", (CustomerID,)).fetchall()
     Bank = []
     for record in cursor:
            BankID = record[0]
