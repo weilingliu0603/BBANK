@@ -82,7 +82,7 @@ def customer_info(CustomerID):
        connection.close()
        Bank = customer_banks(CustomerID)
        CreditCard = customer_creditcards(CustomerID)
-       results = {'CreditCard': CreditCard, 'Bank': Bank, 'CustomerID': CustomerID, 'Name': Name, 'Email':Email, 'Mobile':Mobile, 'ProfilePic':ProfilePic, 'Deposit': Deposit, 'Credit': Credit}
+       results = {'CreditCard': CreditCard, 'Bank': Bank, 'CustomerID': CustomerID, 'Name': Name, 'Email':Email, 'Mobile':Mobile, 'ProfilePic':ProfilePic, 'Deposit': round(Deposit,2), 'Credit': round(Credit,2)}
        return results
 
 #Return Customer BankAccounts
@@ -238,30 +238,62 @@ def get_insights():
     CustomerID = req_data['CustomerID']
     Month = req_data['Month']
     connection = sqlite3.connect("BBOOK.db")
-    cursor = connection.execute("select Category, Sum(amount) from CreditCardTransaction  where month = ? and CardNumber IN (Select CardNumber from CreditCard where CustomerID = ?) group by category", (Month,CustomerID,)).fetchall()
-
+    cursor = connection.execute("select Category, Sum(amount) from CreditCardTransaction where month = ? and CardNumber IN (Select CardNumber from CreditCard where CustomerID = ?) group by category", (Month,CustomerID,)).fetchall()
+    cursor2 = connection.execute("select Category, BudgetAmount from Budget where CustomerID = ? ", (CustomerID,)).fetchall()
+    connection.close()
     Food = 0
     Bill = 0
     Medical = 0
     Shopping = 0
     Transport = 0
     Uncategorised = 0
+    BudgetedExpense = 0
 
+    Food_B = 0
+    Bill_B = 0
+    Medical_B = 0
+    Shopping_B = 0
+    Transport_B = 0
+    Uncategorised_B = 0
+    TotalBudgeted = 0
+
+    #Get Expense
     for record in cursor:
         if record[0] == 'Food & Drinks':
             Food += record[1]
+            BudgetedExpense += record[1]
         if record[0] == 'Bills & Utilites':
             Bill += record[1]
+            BudgetedExpense += record[1]
         if record[0] == 'Medical & Personal Care':
             Medical += record[1]
+            BudgetedExpense += record[1]
         if record[0] == 'Shopping':
             Shopping += record[1]
+            BudgetedExpense += record[1]
         if record[0] == 'Transport':
             Transport += record[1]
+            BudgetedExpense += record[1]
         if record[0] == 'Uncategorised':
             Uncategorised += record[1]
 
-    return {"CustomerID": CustomerID, "Month": Month, "Food":round(Food,2), "Bill": round(Bill,2), "Medical":round(Medical,2), "Shopping":round(Shopping,2), "Transport":round(Transport,2), "Uncategorised":round(Uncategorised,2)}
+    #Get Budget
+    for record in cursor2:
+        if record[0] == 'Food':
+            Food_B += record[1]
+        if record[0] == 'Bill':
+            Bill_B += record[1]
+        if record[0] == 'Medical':
+            Medical_B += record[1]
+        if record[0] == 'Shopping':
+            Shopping_B += record[1]
+        if record[0] == 'Transport':
+            Transport_B += record[1]
+        TotalBudgeted += record[1]
+
+    Uncategorised_B = TotalBudgeted - BudgetedExpense
+
+    return {"CustomerID": CustomerID, "Month": Month, "Food":round(Food,2), "Bill": round(Bill,2), "Medical":round(Medical,2), "Shopping":round(Shopping,2), "Transport":round(Transport,2), "Uncategorised":round(Uncategorised,2), "Food_B":round(Food_B,2), "Bill_B": round(Bill_B,2), "Medical_B":round(Medical_B,2), "Shopping_B":round(Shopping_B,2), "Transport_B":round(Transport_B,2), "Uncategorised_B":round(Uncategorised_B,2)}
 
 #retrieve all saving accounts transactions
 @app.route("/accounts_transactions/<Email>")
