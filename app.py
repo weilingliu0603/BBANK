@@ -263,8 +263,6 @@ def get_insights():
 
     return {"CustomerID": CustomerID, "Month": Month, "Food":round(Food,2), "Bill": round(Bill,2), "Medical":round(Medical,2), "Shopping":round(Shopping,2), "Transport":round(Transport,2), "Uncategorised":round(Uncategorised,2)}
 
-
-
 #retrieve all saving accounts transactions
 @app.route("/accounts_transactions/<Email>")
 def accounts_transactions(Email): 
@@ -319,32 +317,6 @@ def cards_transactions(Email):
     
     return jsonify(dic)     
 
-#retrieve credit card transactions of one card
-@app.route("/card_transactions/<CardNumber>")
-def card_transactions(CardNumber):
-    dic = {CardNumber:[]}
-    connection = sqlite3.connect("BBOOK.db")
-
-    cursor = connection.execute("SELECT Date, Time, Amount, Category FROM CreditCardTransaction WHERE CardNumber = ? ", (CardNumber,)).fetchall()
-    for record in cursor:
-           dic[CardNumber].append(record)
-    
-    return jsonify(dic)
-
-#retrieve info of each credit card (incl amount due)
-@app.route("/card_info/<CardNumber>")
-def card_info(CardNumber):
-    connection = sqlite3.connect("BBOOK.db")
-
-    cursor = connection.execute("SELECT * FROM CreditCard WHERE CardNumber = ? ", (CardNumber,)).fetchall()
-    cursor1 = connection.execute("SELECT Name FROM Customer WHERE CustomerID = ? ", (cursor[0][5],)).fetchall()
-
-
-    dic = {"CardNumber":cursor[0][0], "Name":cursor1[0][0], "CardType":cursor[0][1], "ExpiryDate":cursor[0][3], "CardName":cursor[0][4], "AmountDue":cursor[0][6]}
-    
-    return jsonify(dic)
-
-
 #retrieve historical total monthly spending (credit cards)
 @app.route("/total_spending/<Email>")
 def total_spending(Email):
@@ -374,45 +346,6 @@ def total_spending(Email):
                                 dic[card][record[1]] += record[0]
                   
     return jsonify(dic)
-       
-
-#retrieve this month's spending by category (credit cards)
-@app.route("/category_spending/<Email>")
-def category_spending(Email):
-    today = dt.datetime.now()
-    month = today.month
-    months = ["Jan","Feb","Mar","April","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
-
-    thismonth = months[month-1]
     
-    
-    connection = sqlite3.connect("BBOOK.db")
-    cursor = connection.execute("SELECT CustomerID FROM Customer WHERE Email = ? ", (Email,)).fetchall()
-
-    CustomerID = cursor[0][0]
-
-    cursor = connection.execute("SELECT CardNumber FROM CreditCard WHERE CustomerID = ? ", (CustomerID,)).fetchall()
-
-    creditcards = []
-    for record in cursor:
-           creditcards.append(record)
-
-    dic = {}
-
-    for card in creditcards:
-           if card not in dic:
-                  dic[card[0]] = {}
-
-           for card in dic:
-                  cursor = connection.execute("SELECT Amount, Category FROM CreditCardTransaction WHERE CardNumber = ? AND Month = ?", (card, thismonth)).fetchall()
-                  for record in cursor:
-                         if record[1] not in dic[card]:
-                                dic[card][record[1]] = round(record[0],2)
-                         else:
-                                dic[card][record[1]] += round(record[0],2)
-                  
-    return jsonify(dic)
-    
-
 if __name__ == "__main__":
     app.run(port=6789,debug=True)
