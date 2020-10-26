@@ -204,7 +204,7 @@ def list_quickpay(CustomerID):
 #@app.route("/get_cardtransactions/<CardNumber>")
 def get_cardtransactions(CardNumber):
     connection = sqlite3.connect("BBOOK.db")
-    cursor = connection.execute("SELECT Date, Time, Amount, Category FROM CreditCardTransaction WHERE CardNumber = ? ", (CardNumber,)).fetchall()
+    cursor = connection.execute("SELECT Date, Time, Amount, Category, Month FROM CreditCardTransaction WHERE CardNumber = ? ", (CardNumber,)).fetchall()
     connection.close()
     transactions = []
     for record in cursor:
@@ -212,7 +212,8 @@ def get_cardtransactions(CardNumber):
            Time = record[1]
            Amount = record[2]
            Category = record[3]
-           transactions.append({"Date":Date, "Time":Time, "Amount":Amount, "Category":Category})
+           Month = record[4]
+           transactions.append({"Date":Date, "Time":Time, "Amount":Amount, "Category":Category, "Month":Month})
     return transactions
 
 #Retrieve Credit Card Info including transactions
@@ -229,6 +230,40 @@ def get_cardinfo(CardNumber):
     BankName = cursor[0][5]
     dic = {"CardNumber":CardNumber, "CardType":CardType, "ExpiryDate":ExpiryDate, "CardName":CardName, "AmountDue":AmountDue, "BankName":BankName, "Transactions":get_cardtransactions(CardNumber)}
     return dic
+
+#Retrieve Spending Insights By Month
+@app.route("/get_insights", methods = ["POST"])
+def get_insights():
+    req_data = request.get_json()
+    CustomerID = req_data['CustomerID']
+    Month = req_data['Month']
+    connection = sqlite3.connect("BBOOK.db")
+    cursor = connection.execute("select Category, Sum(amount) from CreditCardTransaction  where month = ? and CardNumber IN (Select CardNumber from CreditCard where CustomerID = ?) group by category", (Month,CustomerID,)).fetchall()
+
+    Food = 0
+    Bill = 0
+    Medical = 0
+    Shopping = 0
+    Transport = 0
+    Uncategorised = 0
+
+    for record in cursor:
+        if record[0] == 'Food & Drinks':
+            Food += record[1]
+        if record[0] == 'Bills & Utilites':
+            Bill += record[1]
+        if record[0] == 'Medical & Personal Care':
+            Medical += record[1]
+        if record[0] == 'Shopping':
+            Shopping += record[1]
+        if record[0] == 'Transport':
+            Transport += record[1]
+        if record[0] == 'Uncategorised':
+            Uncategorised += record[1]
+
+    return {"CustomerID": CustomerID, "Month": Month, "Food":round(Food,2), "Bill": round(Bill,2), "Medical":round(Medical,2), "Shopping":round(Shopping,2), "Transport":round(Transport,2), "Uncategorised":round(Uncategorised,2)}
+
+
 
 #retrieve all saving accounts transactions
 @app.route("/accounts_transactions/<Email>")
