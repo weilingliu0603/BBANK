@@ -3,6 +3,7 @@ import sqlite3
 from flask import jsonify
 from flask import request
 import datetime as dt
+from datetime import datetime
 
 app = flask.Flask(__name__)
 
@@ -118,10 +119,6 @@ def customer_creditcards(CustomerID):
 #Transfer from Bank to Bank
 @app.route("/bank_transfer", methods = ["POST"]) #set method to GET/POST
 def bank_transfer(): 
-##    data = flask.request.form
-##    Sender = data["Account_Send"]
-##    Receiver = data["Accound_Receive"]
-##    Amount = data["Amount"]
 
     req_data = request.get_json()
     Sender = req_data['Sender']
@@ -152,16 +149,12 @@ def bank_transfer():
 #pay credit card amount due
 @app.route("/pay_creditcard", methods = ["POST"]) #set method to GET/POST
 def pay_creditcard(): 
-##    data = flask.request.form
-##    CardNumber = data["CardNumber"]
-##    AccountNum = data["AccountNum"]
-##    AmountPaid = data["AmountPaid"]
 
     req_data = request.get_json()
     BankAccount = req_data['BankAccount']
     CardNumber = req_data['CardNumber']
     PayAmount = req_data['PayAmount']
-    
+    now = datetime.now()
     connection = sqlite3.connect("BBOOK.db")
     cursor = connection.execute("SELECT Balance FROM Account WHERE AccountNumber = ? ", (BankAccount,)).fetchall()
     balance = cursor[0][0]
@@ -177,9 +170,12 @@ def pay_creditcard():
         results = [{'status': 'success', 'message': 'successfully paid'}]
         connection.execute("UPDATE Account SET Balance = ? WHERE AccountNumber = ? ", (balance - PayAmount, BankAccount,))
         connection.commit()
+        connection.execute("INSERT INTO AccountTransaction (AccountNumber,Date,Time,Amount,Description) VALUES (?, ?, ?, ?, ?)", (BankAccount,now.strftime("%d/%m/%Y"),now.strftime("%H:%M:%S"),-(PayAmount),"Pay Credit Card",))
+        connection.commit()
         newamount = AmountDue - PayAmount
         connection.execute("UPDATE CreditCard SET AmountDue = ? WHERE CardNumber = ? ", (newamount, CardNumber,))
         connection.commit()
+
 
     connection.close()
     return jsonify(results) 
